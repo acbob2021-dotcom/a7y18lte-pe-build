@@ -11,71 +11,134 @@ jobs:
       - name: Checkout Build Repo
         uses: actions/checkout@v4
 
-      - name: Free Disk Space
-        uses: jlumbroso/free-disk-space@main
-        with:
-          preinstalled-runtimes: true
-          android: false
-          dotnet: true
-          haskell: true
-          large-packages: true
-          swap-storage: true
+      # ── AGGRESSIVE DISK CLEANUP ──────────────────────────────────────────
+      # GitHub free runners: ~84 GB total, ~14 GB usable by default.
+      # We nuke everything we don't need to get ~50+ GB free.
+      - name: Free Maximum Disk Space
+        run: |
+          echo "=== Disk before cleanup ==="
+          df -h /
 
+          # Remove large pre-installed software
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo rm -rf /usr/local/share/boost
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          sudo rm -rf /usr/local/share/chromium
+          sudo rm -rf /usr/share/swift
+          sudo rm -rf /opt/az
+          sudo rm -rf /usr/share/miniconda
+          sudo rm -rf /usr/local/.ghcup
+          sudo rm -rf /usr/local/share/powershell
+          sudo rm -rf /usr/local/lib/node_modules
+
+          # Remove Docker images
+          sudo docker image prune --all --force 2>/dev/null || true
+
+          # Remove unused apt packages
+          sudo apt-get autoremove -y
+          sudo apt-get clean
+
+          echo "=== Disk after cleanup ==="
+          df -h /
+
+      # ── BUILD DEPENDENCIES ───────────────────────────────────────────────
       - name: Setup Build Environment & Dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y bc bison build-essential ccache curl flex g++-multilib \
-            gcc-multilib git gnupg gperf imagemagick lib32readline-dev lib32z1-dev \
-            libelf-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev \
-            libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc \
-            zip zlib1g-dev python-is-python3 tar
-          
+          sudo apt-get update -qq
+          sudo apt-get install -y \
+            bc bison build-essential ccache curl flex g++-multilib \
+            gcc-multilib git gnupg gperf imagemagick lib32readline-dev \
+            lib32z1-dev libelf-dev liblz4-tool libncurses5 libncurses5-dev \
+            libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush \
+            rsync schedtool squashfs-tools xsltproc zip zlib1g-dev \
+            python-is-python3 tar
+
           mkdir -p ~/bin
-          curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
+          curl -s https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
           chmod a+x ~/bin/repo
           echo "$HOME/bin" >> $GITHUB_PATH
 
           git config --global user.name "LineageOS Builder"
           git config --global user.email "builder@lineageos.local"
 
+      # ── REPO INIT ────────────────────────────────────────────────────────
       - name: Initialize LineageOS 18.1 Manifest
         run: |
           mkdir -p ~/android/lineage && cd ~/android/lineage
-          repo init -u https://github.com/LineageOS/android.git -b lineage-18.1 --depth=1
+          repo init -u https://github.com/LineageOS/android.git \
+            -b lineage-18.1 \
+            --depth=1 \
+            --no-clone-bundle
 
+      # ── SYNC ─────────────────────────────────────────────────────────────
       - name: Inject Local Manifest & Sync Trees
         run: |
           mkdir -p ~/android/lineage/.repo/local_manifests
           cp manifests/a7y18lte.xml ~/android/lineage/.repo/local_manifests/
-          
+
           cd ~/android/lineage
-          repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags --prune
+          repo sync -c -j$(nproc --all) \
+            --force-sync \
+            --no-clone-bundle \
+            --no-tags \
+            --prune \
+            --optimized-fetch
 
-          # Enable in-tree GApps & Gboard in device makefile
-          echo '$(call inherit-product-if-exists, vendor/gapps/gapps.mk)' >> device/samsung/a7y18lte/lineage_a7y18lte.mk
+          echo "=== Disk after sync ==="
+          df -h /
 
-      - name: Build Custom Recovery & LineageOS ROM
+          # Inject GApps + Gboard into device makefile
+          echo '$(call inherit-product-if-exists, vendor/gapps/gapps.mk)' \
+            >> device/samsung/a7y18lte/lineage_a7y18lte.mk
+
+      # ── BUILD ────────────────────────────────────────────────────────────
+      - name: Build LineageOS ROM & Recovery
         run: |
           cd ~/android/lineage
+
+          # --- ccache (saves time on retries, small footprint) ---
           export USE_CCACHE=1
           export CCACHE_EXEC=/usr/bin/ccache
-          ccache -M 30G
+          ccache -M 5G        # Keep ccache small to save disk
+
+          # --- Key flags to reduce disk usage ---
           export ALLOW_MISSING_DEPENDENCIES=true
+          export WITH_DEXPREOPT=false          # Skip dex precompile (saves ~3 GB)
+          export SKIP_ABI_CHECKS=true
+          export BUILD_NUMBER=$(date +%Y%m%d)
 
           source build/envsetup.sh
           lunch lineage_a7y18lte-userdebug
 
-          # 1. Build Custom Recovery first
+          echo "=== Disk before build ==="
+          df -h /
+
+          # 1. Build recovery image first (small, fast)
           make recoveryimage -j$(nproc --all)
-          
+
           # Package recovery into Samsung Odin .tar format
           cd out/target/product/a7y18lte/
           tar -cvf recovery.tar recovery.img
           cd ~/android/lineage
 
-          # 2. Build Flashable LineageOS Zip (Includes GApps & Gboard)
+          echo "=== Disk after recovery build ==="
+          df -h /
+
+          # 2. Clean intermediates that are no longer needed
+          #    (keep out/target/product/a7y18lte but remove soong intermediates)
+          find out/soong/.intermediates -name "*.o" -delete 2>/dev/null || true
+          find out/soong/.intermediates -name "*.d" -delete 2>/dev/null || true
+
+          echo "=== Disk after intermediate cleanup ==="
+          df -h /
+
+          # 3. Build the full flashable ROM zip
           mka bacon -j$(nproc --all)
 
+      # ── UPLOAD ───────────────────────────────────────────────────────────
       - name: Upload Flashable Artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -84,3 +147,4 @@ jobs:
             ~/android/lineage/out/target/product/a7y18lte/recovery.tar
             ~/android/lineage/out/target/product/a7y18lte/recovery.img
             ~/android/lineage/out/target/product/a7y18lte/lineage-*.zip
+          if-no-files-found: warn
