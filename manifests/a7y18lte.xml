@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <manifest>
-  <!-- Remove dead offline repos from PixelExperience manifest -->
+  <!-- Replace offline FaceUnlock with working GitHub archive mirror -->
   <remove-project name="external_faceunlock" />
-  <remove-project name="packages_apps_FaceUnlockService" />
+  <project path="external/faceunlock" name="PixelExperienceArchive/external_faceunlock" remote="github" revision="eleven" />
 
   <!-- Samsung Galaxy A7 2018 (a7y18lte) Trees -->
   <project name="exynos7885-dev/device_samsung_a7y18lte" path="device/samsung/a7y18lte" remote="github" revision="lineage-18.1" />
