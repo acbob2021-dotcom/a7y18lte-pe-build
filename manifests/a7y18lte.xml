@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <manifest>
-  <!-- Replace offline FaceUnlock with working GitHub archive mirror -->
-  <remove-project name="external_faceunlock" />
-  <project path="external/faceunlock" name="PixelExperienceArchive/external_faceunlock" remote="github" revision="eleven" />
-
   <!-- Samsung Galaxy A7 2018 (a7y18lte) Trees -->
   <project name="exynos7885-dev/device_samsung_a7y18lte" path="device/samsung/a7y18lte" remote="github" revision="lineage-18.1" />
   <project name="exynos7885-dev/device_samsung_exynos7885-common" path="device/samsung/exynos7885-common" remote="github" revision="lineage-18.1" />
@@ -15,7 +11,7 @@
   <project name="exynos7885-dev/proprietary_vendor_samsung_a7y18lte" path="vendor/samsung/a7y18lte" remote="github" revision="lineage-18.1" />
   <project name="exynos7885-dev/proprietary_vendor_samsung_exynos7885-common" path="vendor/samsung/exynos7885-common" remote="github" revision="lineage-18.1" />
 
-  <!-- Exynos Hardware HALs & SEPolicy -->
+  <!-- Exynos Hardware HALs -->
   <project name="exynos7885-dev/hardware_samsung" path="hardware/samsung" remote="github" revision="lineage-18.1" />
   <project name="exynos7885-dev/hardware_samsung_slsi-linaro_config" path="hardware/samsung_slsi-linaro/config" remote="github" revision="lineage-18.1" />
   <project name="exynos7885-dev/hardware_samsung_slsi-linaro_exynos" path="hardware/samsung_slsi-linaro/exynos" remote="github" revision="lineage-18.1" />
@@ -23,7 +19,9 @@
   <project name="exynos7885-dev/hardware_samsung_slsi-linaro_graphics" path="hardware/samsung_slsi-linaro/graphics" remote="github" revision="lineage-18.1" />
   <project name="exynos7885-dev/hardware_samsung_slsi-linaro_openmax" path="hardware/samsung_slsi-linaro/openmax" remote="github" revision="lineage-18.1" />
   
-  <!-- Samsung SLSI & Lineage SEPolicy -->
-  <project name="LineageOS/android_device_lineage_sepolicy" path="device/lineage/sepolicy" remote="github" revision="lineage-18.1" />
+  <!-- Samsung SLSI SEPolicy -->
   <project name="LineageOS/android_device_samsung_slsi_sepolicy" path="device/samsung_slsi/sepolicy" remote="github" revision="lineage-18.1" />
+
+  <!-- In-Tree Google Apps (Play Store, Services & Gboard Default) -->
+  <project name="AOSP-11/vendor_gapps" path="vendor/gapps" remote="github" revision="11" />
 </manifest>

@@ -1,11 +1,11 @@
-name: Build PixelExperience & Recovery for Galaxy A7 (2018)
+name: Build LineageOS 18.1 (with GApps & Gboard) for Galaxy A7 (2018)
 
 on:
   workflow_dispatch:
 
 jobs:
   build:
-    name: Build ROM and Recovery
+    name: Build LineageOS & Recovery
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout Build Repo
@@ -35,35 +35,34 @@ jobs:
           chmod a+x ~/bin/repo
           echo "$HOME/bin" >> $GITHUB_PATH
 
-          git config --global user.name "PixelExperience Builder"
-          git config --global user.email "builder@pixelexperience.local"
+          git config --global user.name "LineageOS Builder"
+          git config --global user.email "builder@lineageos.local"
 
-      - name: Initialize PixelExperience 11 Manifest
+      - name: Initialize LineageOS 18.1 Manifest
         run: |
-          mkdir -p ~/android/pe && cd ~/android/pe
-          repo init -u https://github.com/PixelExperience/manifest -b eleven --depth=1
+          mkdir -p ~/android/lineage && cd ~/android/lineage
+          repo init -u https://github.com/LineageOS/android.git -b lineage-18.1 --depth=1
 
-      - name: Inject Local Manifest & Device Patches
+      - name: Inject Local Manifest & Sync Trees
         run: |
-          mkdir -p ~/android/pe/.repo/local_manifests
-          cp manifests/a7y18lte.xml ~/android/pe/.repo/local_manifests/
+          mkdir -p ~/android/lineage/.repo/local_manifests
+          cp manifests/a7y18lte.xml ~/android/lineage/.repo/local_manifests/
           
-          cd ~/android/pe
+          cd ~/android/lineage
           repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags --prune
 
-          # Apply PixelExperience product definitions to device tree
-          cp ${{ github.workspace }}/patches/aosp_a7y18lte.mk device/samsung/a7y18lte/
-          cp ${{ github.workspace }}/patches/AndroidProducts.mk device/samsung/a7y18lte/
+          # Enable in-tree GApps & Gboard in device makefile
+          echo '$(call inherit-product-if-exists, vendor/gapps/gapps.mk)' >> device/samsung/a7y18lte/lineage_a7y18lte.mk
 
-      - name: Build Custom Recovery & PixelExperience ROM
+      - name: Build Custom Recovery & LineageOS ROM
         run: |
-          cd ~/android/pe
+          cd ~/android/lineage
           export USE_CCACHE=1
           export CCACHE_EXEC=/usr/bin/ccache
           ccache -M 30G
 
           source build/envsetup.sh
-          lunch aosp_a7y18lte-userdebug
+          lunch lineage_a7y18lte-userdebug
 
           # 1. Build Custom Recovery first
           make recoveryimage -j$(nproc --all)
@@ -71,16 +70,16 @@ jobs:
           # Package recovery into Samsung Odin .tar format
           cd out/target/product/a7y18lte/
           tar -cvf recovery.tar recovery.img
-          cd ~/android/pe
+          cd ~/android/lineage
 
-          # 2. Build Flashable ROM Zip
+          # 2. Build Flashable LineageOS Zip (Includes GApps & Gboard)
           mka bacon -j$(nproc --all)
 
       - name: Upload Flashable Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: PixelExperience-A7-2018-Build
+          name: LineageOS-18.1-GApps-A7-2018-Build
           path: |
-            ~/android/pe/out/target/product/a7y18lte/recovery.tar
-            ~/android/pe/out/target/product/a7y18lte/recovery.img
-            ~/android/pe/out/target/product/a7y18lte/PixelExperience_*.zip
+            ~/android/lineage/out/target/product/a7y18lte/recovery.tar
+            ~/android/lineage/out/target/product/a7y18lte/recovery.img
+            ~/android/lineage/out/target/product/a7y18lte/lineage-*.zip
