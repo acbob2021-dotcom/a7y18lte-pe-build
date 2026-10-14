@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <!-- Samsung Galaxy A7 2018 (a7y18lte) Trees -->
+  <project name="exynos7885-dev/device_samsung_a7y18lte" path="device/samsung/a7y18lte" remote="github" revision="lineage-18.1" />
+  <project name="exynos7885-dev/device_samsung_exynos7885-common" path="device/samsung/exynos7885-common" remote="github" revision="lineage-18.1" />
+
+  <!-- Kernel Source -->
+  <project name="exynos7885-dev/kernel_samsung_exynos7885" path="kernel/samsung/exynos7885" remote="github" revision="lineage-18.1" />
+
+  <!-- Proprietary Vendor Blobs -->
+  <project name="exynos7885-dev/proprietary_vendor_samsung_a7y18lte" path="vendor/samsung/a7y18lte" remote="github" revision="lineage-18.1" />
+  <project name="exynos7885-dev/proprietary_vendor_samsung_exynos7885-common" path="vendor/samsung/exynos7885-common" remote="github" revision="lineage-18.1" />
+
+  <!-- Exynos Hardware HALs & SEPolicy -->
+  <project name="exynos7885-dev/hardware_samsung" path="hardware/samsung" remote="github" revision="lineage-18.1" />
+  <project name="exynos7885-dev/hardware_samsung_slsi-linaro_config" path="hardware/samsung_slsi-linaro/config" remote="github" revision="lineage-18.1" />
+  <project name="exynos7885-dev/hardware_samsung_slsi-linaro_exynos" path="hardware/samsung_slsi-linaro/exynos" remote="github" revision="lineage-18.1" />
+  <project name="exynos7885-dev/hardware_samsung_slsi-linaro_exynos5" path="hardware/samsung_slsi-linaro/exynos5" remote="github" revision="lineage-18.1" />
+  <project name="exynos7885-dev/hardware_samsung_slsi-linaro_graphics" path="hardware/samsung_slsi-linaro/graphics" remote="github" revision="lineage-18.1" />
+  <project name="exynos7885-dev/hardware_samsung_slsi-linaro_openmax" path="hardware/samsung_slsi-linaro/openmax" remote="github" revision="lineage-18.1" />
+  <project name="LineageOS/android_device_lineage_sepolicy" path="device/lineage/sepolicy" remote="github" revision="lineage-18.1" />
+</manifest>
