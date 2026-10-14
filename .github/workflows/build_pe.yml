@@ -60,6 +60,7 @@ jobs:
           export USE_CCACHE=1
           export CCACHE_EXEC=/usr/bin/ccache
           ccache -M 30G
+          export ALLOW_MISSING_DEPENDENCIES=true
 
           source build/envsetup.sh
           lunch lineage_a7y18lte-userdebug

@@ -22,6 +22,10 @@
   <!-- Samsung SLSI SEPolicy -->
   <project name="LineageOS/android_device_samsung_slsi_sepolicy" path="device/samsung_slsi/sepolicy" remote="github" revision="lineage-18.1" />
 
+  <!-- Samsung SLSI WiFi HAL & WPA Driver Lib -->
+  <project name="tabs6lite-dev/android_hardware_samsung_slsi_scsc_wifibt_wifi_hal" path="hardware/samsung_slsi/scsc_wifibt/wifi_hal" remote="github" revision="11.0" />
+  <project name="tabs6lite-dev/android_hardware_samsung_slsi_scsc_wifibt_wpa_supplicant_lib" path="hardware/samsung_slsi/scsc_wifibt/wpa_supplicant_lib" remote="github" revision="11.0" />
+
   <!-- In-Tree Google Apps (Play Store, Services & Gboard Default) -->
   <project name="AOSP-11/vendor_gapps" path="vendor/gapps" remote="github" revision="11" />
 </manifest>
