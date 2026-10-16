@@ -86,7 +86,6 @@ jobs:
             --force-sync \
             --no-clone-bundle \
             --no-tags \
-            --depth=1 \
             --prune \
             --optimized-fetch
 
