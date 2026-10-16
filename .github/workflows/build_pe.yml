@@ -11,15 +11,17 @@ jobs:
       - name: Checkout Build Repo
         uses: actions/checkout@v4
 
-      # ── AGGRESSIVE DISK CLEANUP ──────────────────────────────────────────
-      # GitHub free runners: ~84 GB total, ~14 GB usable by default.
-      # We nuke everything we don't need to get ~50+ GB free.
+      # ── MAXIMUM RUNNER DISK CLEANUP ──────────────────────────────────────
       - name: Free Maximum Disk Space
         run: |
           echo "=== Disk before cleanup ==="
           df -h /
 
-          # Remove large pre-installed software
+          # Stop and remove Docker completely
+          sudo systemctl stop docker 2>/dev/null || true
+          sudo rm -rf /var/lib/docker /etc/docker 2>/dev/null || true
+
+          # Remove bulky pre-installed toolchains & runtimes
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /usr/local/lib/android
           sudo rm -rf /opt/ghc
@@ -32,13 +34,12 @@ jobs:
           sudo rm -rf /usr/share/miniconda
           sudo rm -rf /usr/local/.ghcup
           sudo rm -rf /usr/local/share/powershell
+          sudo rm -rf /usr/local/share/vcpkg
           sudo rm -rf /usr/local/lib/node_modules
 
-          # Remove Docker images
-          sudo docker image prune --all --force 2>/dev/null || true
-
-          # Remove unused apt packages
-          sudo apt-get autoremove -y
+          # Purge unused large packages
+          sudo apt-get purge -y azure-cli google-cloud-cli microsoft-edge-stable google-chrome-stable firefox powershell 2>/dev/null || true
+          sudo apt-get autoremove -y -qq
           sudo apt-get clean
 
           echo "=== Disk after cleanup ==="
@@ -49,7 +50,7 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y \
-            bc bison build-essential ccache curl flex g++-multilib \
+            bc bison build-essential curl flex g++-multilib \
             gcc-multilib git gnupg gperf imagemagick lib32readline-dev \
             lib32z1-dev libelf-dev liblz4-tool libncurses5 libncurses5-dev \
             libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush \
@@ -64,16 +65,17 @@ jobs:
           git config --global user.name "LineageOS Builder"
           git config --global user.email "builder@lineageos.local"
 
-      # ── REPO INIT ────────────────────────────────────────────────────────
+      # ── REPO INIT (SHALLOW + EXCLUDE DARWIN TOOLCHAINS) ───────────────────
       - name: Initialize LineageOS 18.1 Manifest
         run: |
           mkdir -p ~/android/lineage && cd ~/android/lineage
           repo init -u https://github.com/LineageOS/android.git \
             -b lineage-18.1 \
             --depth=1 \
-            --no-clone-bundle
+            --no-clone-bundle \
+            -g default,-darwin
 
-      # ── SYNC ─────────────────────────────────────────────────────────────
+      # ── SYNC (SHALLOW & STREAMLINED) ─────────────────────────────────────
       - name: Inject Local Manifest & Sync Trees
         run: |
           mkdir -p ~/android/lineage/.repo/local_manifests
@@ -84,6 +86,7 @@ jobs:
             --force-sync \
             --no-clone-bundle \
             --no-tags \
+            --depth=1 \
             --prune \
             --optimized-fetch
 
@@ -94,17 +97,11 @@ jobs:
           echo '$(call inherit-product-if-exists, vendor/gapps/gapps.mk)' \
             >> device/samsung/a7y18lte/lineage_a7y18lte.mk
 
-      # ── BUILD ────────────────────────────────────────────────────────────
+      # ── BUILD ROM & RECOVERY IN SINGLE PASS ──────────────────────────────
       - name: Build LineageOS ROM & Recovery
         run: |
           cd ~/android/lineage
 
-          # --- ccache (saves time on retries, small footprint) ---
-          export USE_CCACHE=1
-          export CCACHE_EXEC=/usr/bin/ccache
-          ccache -M 5G        # Keep ccache small to save disk
-
-          # --- Key flags to reduce disk usage ---
           export ALLOW_MISSING_DEPENDENCIES=true
           export WITH_DEXPREOPT=false          # Skip dex precompile (saves ~3 GB)
           export SKIP_ABI_CHECKS=true
@@ -116,27 +113,33 @@ jobs:
           echo "=== Disk before build ==="
           df -h /
 
-          # 1. Build recovery image first (small, fast)
-          make recoveryimage -j$(nproc --all)
+          # Dynamic disk watchdog: if free disk drops below 15 GB, purge unneeded host debug symbols
+          # (symbols/ are unstripped binaries for host debugging; they are NOT used in ROM zip or recovery)
+          (
+            while true; do
+              FREE_KB=$(df -k / | awk 'NR==2 {print $4}')
+              if [ "$FREE_KB" -lt 15728640 ]; then
+                echo "Disk watchdog: Free space is low (${FREE_KB} KB). Cleaning debug symbols..."
+                rm -rf out/target/product/a7y18lte/symbols/* 2>/dev/null || true
+              fi
+              sleep 45
+            done
+          ) &
+          WATCHDOG_PID=$!
+
+          # Build full LineageOS ROM and Recovery in unified pass
+          mka bacon -j$(nproc --all)
+
+          # Stop the watchdog
+          kill $WATCHDOG_PID 2>/dev/null || true
 
           # Package recovery into Samsung Odin .tar format
           cd out/target/product/a7y18lte/
           tar -cvf recovery.tar recovery.img
           cd ~/android/lineage
 
-          echo "=== Disk after recovery build ==="
+          echo "=== Disk after build ==="
           df -h /
-
-          # 2. Clean intermediates that are no longer needed
-          #    (keep out/target/product/a7y18lte but remove soong intermediates)
-          find out/soong/.intermediates -name "*.o" -delete 2>/dev/null || true
-          find out/soong/.intermediates -name "*.d" -delete 2>/dev/null || true
-
-          echo "=== Disk after intermediate cleanup ==="
-          df -h /
-
-          # 3. Build the full flashable ROM zip
-          mka bacon -j$(nproc --all)
 
       # ── UPLOAD ───────────────────────────────────────────────────────────
       - name: Upload Flashable Artifacts

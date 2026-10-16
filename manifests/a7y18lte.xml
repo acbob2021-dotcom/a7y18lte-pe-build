@@ -1,31 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <manifest>
   <!-- Samsung Galaxy A7 2018 (a7y18lte) Trees -->
-  <project name="exynos7885-dev/device_samsung_a7y18lte" path="device/samsung/a7y18lte" remote="github" revision="lineage-18.1" />
-  <project name="exynos7885-dev/device_samsung_exynos7885-common" path="device/samsung/exynos7885-common" remote="github" revision="lineage-18.1" />
+  <project name="exynos7885-dev/device_samsung_a7y18lte" path="device/samsung/a7y18lte" remote="github" revision="lineage-18.1" clone-depth="1" />
+  <project name="exynos7885-dev/device_samsung_exynos7885-common" path="device/samsung/exynos7885-common" remote="github" revision="lineage-18.1" clone-depth="1" />
 
   <!-- Kernel Source -->
-  <project name="exynos7885-dev/kernel_samsung_exynos7885" path="kernel/samsung/exynos7885" remote="github" revision="lineage-18.1" />
+  <project name="exynos7885-dev/kernel_samsung_exynos7885" path="kernel/samsung/exynos7885" remote="github" revision="lineage-18.1" clone-depth="1" />
 
   <!-- Proprietary Vendor Blobs -->
-  <project name="exynos7885-dev/proprietary_vendor_samsung_a7y18lte" path="vendor/samsung/a7y18lte" remote="github" revision="lineage-18.1" />
-  <project name="exynos7885-dev/proprietary_vendor_samsung_exynos7885-common" path="vendor/samsung/exynos7885-common" remote="github" revision="lineage-18.1" />
+  <project name="exynos7885-dev/proprietary_vendor_samsung_a7y18lte" path="vendor/samsung/a7y18lte" remote="github" revision="lineage-18.1" clone-depth="1" />
+  <project name="exynos7885-dev/proprietary_vendor_samsung_exynos7885-common" path="vendor/samsung/exynos7885-common" remote="github" revision="lineage-18.1" clone-depth="1" />
 
   <!-- Exynos Hardware HALs -->
-  <project name="exynos7885-dev/hardware_samsung" path="hardware/samsung" remote="github" revision="lineage-18.1" />
-  <project name="exynos7885-dev/hardware_samsung_slsi-linaro_config" path="hardware/samsung_slsi-linaro/config" remote="github" revision="lineage-18.1" />
-  <project name="exynos7885-dev/hardware_samsung_slsi-linaro_exynos" path="hardware/samsung_slsi-linaro/exynos" remote="github" revision="lineage-18.1" />
-  <project name="exynos7885-dev/hardware_samsung_slsi-linaro_exynos5" path="hardware/samsung_slsi-linaro/exynos5" remote="github" revision="lineage-18.1" />
-  <project name="exynos7885-dev/hardware_samsung_slsi-linaro_graphics" path="hardware/samsung_slsi-linaro/graphics" remote="github" revision="lineage-18.1" />
-  <project name="exynos7885-dev/hardware_samsung_slsi-linaro_openmax" path="hardware/samsung_slsi-linaro/openmax" remote="github" revision="lineage-18.1" />
+  <project name="exynos7885-dev/hardware_samsung" path="hardware/samsung" remote="github" revision="lineage-18.1" clone-depth="1" />
+  <project name="exynos7885-dev/hardware_samsung_slsi-linaro_config" path="hardware/samsung_slsi-linaro/config" remote="github" revision="lineage-18.1" clone-depth="1" />
+  <project name="exynos7885-dev/hardware_samsung_slsi-linaro_exynos" path="hardware/samsung_slsi-linaro/exynos" remote="github" revision="lineage-18.1" clone-depth="1" />
+  <project name="exynos7885-dev/hardware_samsung_slsi-linaro_exynos5" path="hardware/samsung_slsi-linaro/exynos5" remote="github" revision="lineage-18.1" clone-depth="1" />
+  <project name="exynos7885-dev/hardware_samsung_slsi-linaro_graphics" path="hardware/samsung_slsi-linaro/graphics" remote="github" revision="lineage-18.1" clone-depth="1" />
+  <project name="exynos7885-dev/hardware_samsung_slsi-linaro_openmax" path="hardware/samsung_slsi-linaro/openmax" remote="github" revision="lineage-18.1" clone-depth="1" />
   
   <!-- Samsung SLSI SEPolicy -->
-  <project name="LineageOS/android_device_samsung_slsi_sepolicy" path="device/samsung_slsi/sepolicy" remote="github" revision="lineage-18.1" />
+  <project name="LineageOS/android_device_samsung_slsi_sepolicy" path="device/samsung_slsi/sepolicy" remote="github" revision="lineage-18.1" clone-depth="1" />
 
   <!-- Samsung SLSI WiFi HAL & WPA Driver Lib -->
-  <project name="tabs6lite-dev/android_hardware_samsung_slsi_scsc_wifibt_wifi_hal" path="hardware/samsung_slsi/scsc_wifibt/wifi_hal" remote="github" revision="11.0" />
-  <project name="tabs6lite-dev/android_hardware_samsung_slsi_scsc_wifibt_wpa_supplicant_lib" path="hardware/samsung_slsi/scsc_wifibt/wpa_supplicant_lib" remote="github" revision="11.0" />
+  <project name="tabs6lite-dev/android_hardware_samsung_slsi_scsc_wifibt_wifi_hal" path="hardware/samsung_slsi/scsc_wifibt/wifi_hal" remote="github" revision="11.0" clone-depth="1" />
+  <project name="tabs6lite-dev/android_hardware_samsung_slsi_scsc_wifibt_wpa_supplicant_lib" path="hardware/samsung_slsi/scsc_wifibt/wpa_supplicant_lib" remote="github" revision="11.0" clone-depth="1" />
 
   <!-- In-Tree Google Apps (Play Store, Services & Gboard Default) -->
-  <project name="AOSP-11/vendor_gapps" path="vendor/gapps" remote="github" revision="11" />
+  <project name="AOSP-11/vendor_gapps" path="vendor/gapps" remote="github" revision="11" clone-depth="1" />
 </manifest>
